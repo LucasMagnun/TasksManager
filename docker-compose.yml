@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tasks_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  auth-service:
+    build: ./apps/auth-service
+    command: npm run start:dev
+    env_file:
+      - ./apps/auth-service/.env
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3001:3001'
+
+  tasks-service:
+    build: ./apps/tasks-service
+    command: npm run start:dev
+    env_file:
+      - ./apps/tasks-service/.env
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3002:3002'
+
+  notifications-service:
+    build: ./apps/notifications-service
+    command: npm run start:dev
+    env_file:
+      - ./apps/notifications-service/.env
+    depends_on:
+      - rabbitmq
+    ports:
+      - '3003:3003'
+
+  api-gateway:
+    build: ./apps/api-gateway
+    command: npm run start:dev
+    env_file:
+      - ./apps/api-gateway/.env
+    depends_on:
+      - auth-service
+      - tasks-service
+      - notifications-service
+    ports:
+      - '3000:3000'
+
+volumes:
+  pgdata:
