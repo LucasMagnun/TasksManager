@@ -1,8 +1,10 @@
 {
   "extends": "../../packages/tsconfig/base.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "sourceMap": true,
-    "incremental": true
-  }
+    "outDir": "dist",
+    "rootDir": "../../", // <- Raiz do monorepo
+    "composite": true,
+    "baseUrl": "../../"
+  },
+  "include": ["src/**/*", "../../packages/*/src/**/*"]
 }
